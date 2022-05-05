@@ -42,6 +42,7 @@ class Chess: ObservableObject {
     @Published var board = [[ChessPiece]](repeating: Array(repeating: ChessPiece(piece: "empty", color: "empty") ,count: 8), count: 8)
     @Published var movementBoard = [[Bool]](repeating: Array(repeating: false ,count: 8), count: 8)
     @Published var isClicked:Coordinate? = nil
+    let communication:Communication = Communication()
     
     init(color:String) {
         self.myColor = color
@@ -71,8 +72,9 @@ class Chess: ObservableObject {
             board[7][index] = ChessPiece(piece: element, color: self.colors.black)
         }
         
-        board[2][1] = ChessPiece(piece: self.pieces.king, color: self.colors.white)
-        board[5][2] = ChessPiece(piece: self.pieces.pon, color: self.colors.white)
+        DispatchQueue.global().async {
+            self.communication.connect()
+        }
     }
     func whereCanGo(coordinate:Coordinate) -> Array<Array<Bool>>?{
         let bisopMovement = [
@@ -132,6 +134,7 @@ class Chess: ObservableObject {
             if((moveCheck ?? [[Bool]](repeating: Array(repeating: false ,count: 8), count: 8))[to.Y][to.X]) {
                 board[to.Y][to.X] = board[from.Y][from.X]
                 board[from.Y][from.X] = ChessPiece(piece: self.pieces.empty, color: self.colors.empty)
+                self.communication.sendMessage(message: "\(from.X)\(from.Y)=>\(to.X)\(to.Y)")
                 return "success"
             }
             else {

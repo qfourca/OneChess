@@ -34,3 +34,6 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+Server/node_modules
+/IOS Client/Pods
