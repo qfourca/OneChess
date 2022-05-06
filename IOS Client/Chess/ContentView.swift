@@ -13,16 +13,16 @@ struct ContentView: View {
     private var isXX: Bool = false
     
     @ObservedObject
-    var chess:Chess = Chess(color: "white")
+    var chess:Chess = Chess()
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(chess.board.enumerated()).reversed(), id: \.offset) { verIdx, element in
+            ForEach((chess.myColor == chess.colors.white ? Array(chess.board.enumerated()).reversed() : Array(chess.board.enumerated())), id: \.offset) { verIdx, element in
                 HStack(spacing: 0) {
-                    ForEach(Array(element.enumerated()), id: \.offset) { horIdx, piece in
+                    ForEach((chess.myColor == chess.colors.white ? Array(element.enumerated()) : Array(element.enumerated()).reversed()), id: \.offset) { horIdx, piece in
                             ZStack{
                                 Rectangle()
-                                    .fill(verIdx % 2 == horIdx % 2 ?
+                                    .fill(verIdx % 2 != horIdx % 2 ?
                                           Color(hue: 1.0, saturation: 0.13, brightness: 0.7) :
                                           Color(hue: 1.0, saturation: 0.5, brightness: 0.43))
                                     .frame(width: 35, height: 35)

@@ -38,15 +38,15 @@ struct Pieces {
 class Chess: ObservableObject {
     let colors:Colors = Colors()
     let pieces:Pieces = Pieces()
-    let myColor:String
+    @Published var myColor:String
     @Published var board = [[ChessPiece]](repeating: Array(repeating: ChessPiece(piece: "empty", color: "empty") ,count: 8), count: 8)
     @Published var movementBoard = [[Bool]](repeating: Array(repeating: false ,count: 8), count: 8)
     @Published var isClicked:Coordinate? = nil
     let communication:Communication = Communication()
     
-    init(color:String) {
-        self.myColor = color
-        if(!(color == "white" || color == "black")) {
+    init() {
+        self.myColor = "black"
+        if(!(self.myColor == "white" || self.myColor == "black")) {
             return
         }
         for i in 0 ..< 8 {
@@ -73,7 +73,8 @@ class Chess: ObservableObject {
         }
         
         DispatchQueue.global().async {
-            self.communication.connect()
+            self.communication.connect(movePiece: self.unsafeMovePiece)
+            self.communication.setColor(setColor: { (color:String) -> () in self.myColor = color })
         }
     }
     func whereCanGo(coordinate:Coordinate) -> Array<Array<Bool>>?{
@@ -121,19 +122,17 @@ class Chess: ObservableObject {
         }
     }
     
-    func movePiece (from:Coordinate, to:Coordinate) -> String{
+    func movePiece (from:Coordinate, to:Coordinate) -> String {
         if(board[from.Y][from.X].piece == self.pieces.empty) {
             return "Impossable to move WITH BUG"
         }
         else if(board[to.Y][to.X].color == self.myColor) {
-
             return "New selection"
         }
         else {
             let moveCheck = whereCanGo(coordinate: from)
             if((moveCheck ?? [[Bool]](repeating: Array(repeating: false ,count: 8), count: 8))[to.Y][to.X]) {
-                board[to.Y][to.X] = board[from.Y][from.X]
-                board[from.Y][from.X] = ChessPiece(piece: self.pieces.empty, color: self.colors.empty)
+                unsafeMovePiece(from: from, to: to)
                 self.communication.sendMessage(message: "\(from.X)\(from.Y)=>\(to.X)\(to.Y)")
                 return "success"
             }
@@ -141,6 +140,12 @@ class Chess: ObservableObject {
                 return "Impossable to move"
             }
         }
+    }
+    
+    private func unsafeMovePiece (from:Coordinate, to:Coordinate) {
+        print(board[from.Y][from.X].piece, board[to.Y][to.X].piece)
+        board[to.Y][to.X] = board[from.Y][from.X]
+        board[from.Y][from.X] = ChessPiece(piece: self.pieces.empty, color: self.colors.empty)
     }
     
     func click(coordinate:Coordinate) {
